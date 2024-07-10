@@ -14,13 +14,33 @@ let estadoInicial = {
             concluida: false
         }
     ],
-    tarefaSelecionada: null
+    tarefaSelecionada: null,
+    editando: false,
 };
 const selecionarTarefa = (estado, tarefa) => {
     return Object.assign(Object.assign({}, estado), { tarefaSelecionada: tarefa === estado.tarefaSelecionada ? null : tarefa });
 };
 const adicionarTarefa = (estado, tarefa) => {
     return Object.assign(Object.assign({}, estado), { tarefas: [...estado.tarefas, tarefa] });
+};
+const deletar = (estado) => {
+    if (estado.tarefaSelecionada) {
+        const tarefas = estado.tarefas.filter(tarefa => tarefa != estado.tarefaSelecionada);
+        return Object.assign(Object.assign({}, estado), { tarefas, tarefaSelecionada: null, editando: false });
+    }
+    else {
+        return estado;
+    }
+};
+const deletarTodas = (estado) => {
+    return Object.assign(Object.assign({}, estado), { tarefas: [], tarefaSelecionada: null, editando: false });
+};
+const deletarConcluidas = (estado) => {
+    const tarefas = estado.tarefas.filter(tarefa => !tarefa.concluida);
+    return Object.assign(Object.assign({}, estado), { tarefas, tarefaSelecionada: null, editando: false });
+};
+const editarTarefa = (estado, tarefa) => {
+    return Object.assign(Object.assign({}, estado), { editando: !estado.editando, tarefaSelecionada: tarefa });
 };
 const atualizarUI = () => {
     const taskIconSvg = `
@@ -36,6 +56,20 @@ const atualizarUI = () => {
     const formAdicionarTarefa = document.querySelector('.app__form-add-task');
     const btnAdicionarTarefa = document.querySelector('.app__button--add-task');
     const textArea = document.querySelector('.app__form-textarea');
+    const labelTarefaAtiva = document.querySelector('.app__section-active-task-description');
+    const btnCancelar = document.querySelector('.app__form-footer__button--cancel');
+    const btnDeletar = document.querySelector('.app__form-footer__button--delete');
+    const btnDeletarConcluidas = document.querySelector('#btn-remover-concluidas');
+    const btnDeletarTodas = document.querySelector('#btn-remover-todas');
+    labelTarefaAtiva.textContent = estadoInicial.tarefaSelecionada ? estadoInicial.tarefaSelecionada.descricao : null;
+    if (estadoInicial.editando && estadoInicial.tarefaSelecionada) {
+        formAdicionarTarefa.classList.remove('hidden');
+        textArea.value = estadoInicial.tarefaSelecionada.descricao;
+    }
+    else {
+        formAdicionarTarefa.classList.add('hidden');
+        textArea.value = "";
+    }
     if (ulTarefas) {
         ulTarefas.innerHTML = "";
     }
@@ -55,6 +89,22 @@ const atualizarUI = () => {
         atualizarUI();
         formAdicionarTarefa.reset();
     };
+    btnCancelar.onclick = () => {
+        formAdicionarTarefa.classList.add('hidden');
+    };
+    btnDeletar.onclick = () => {
+        estadoInicial = deletar(estadoInicial);
+        formAdicionarTarefa.classList.add('hidden');
+        atualizarUI();
+    };
+    btnDeletarConcluidas.onclick = () => {
+        estadoInicial = deletarConcluidas(estadoInicial);
+        atualizarUI();
+    };
+    btnDeletarTodas.onclick = () => {
+        estadoInicial = deletarTodas(estadoInicial);
+        atualizarUI();
+    };
     estadoInicial.tarefas.forEach(tarefa => {
         const li = document.createElement('li');
         li.classList.add('app__section-task-list-item');
@@ -72,9 +122,21 @@ const atualizarUI = () => {
             button.setAttribute('disabled', 'true');
             li.classList.add('app__section-task-list-item-complete');
         }
+        if (tarefa === estadoInicial.tarefaSelecionada) {
+            li.classList.add('app__section-task-list-item-active');
+        }
         li.appendChild(svgIcon);
         li.appendChild(paragraph);
         li.appendChild(button);
+        li.addEventListener('click', () => {
+            estadoInicial = selecionarTarefa(estadoInicial, tarefa);
+            atualizarUI();
+        });
+        editIcon.onclick = (evento) => {
+            evento.stopPropagation();
+            estadoInicial = editarTarefa(estadoInicial, tarefa);
+            atualizarUI();
+        };
         ulTarefas === null || ulTarefas === void 0 ? void 0 : ulTarefas.appendChild(li);
     });
 };

@@ -5,7 +5,8 @@ interface Tarefa {
 
 interface EstadoAplicacao {
     tarefas: Tarefa[],
-    tarefaSelecionada: Tarefa | null
+    tarefaSelecionada: Tarefa | null,
+    editando: boolean,
 }
 
 let estadoInicial: EstadoAplicacao = {
@@ -23,7 +24,8 @@ let estadoInicial: EstadoAplicacao = {
             concluida: false
         }
     ],
-    tarefaSelecionada: null
+    tarefaSelecionada: null,
+    editando: false,
 }
 
 const selecionarTarefa = (estado: EstadoAplicacao, tarefa: Tarefa): EstadoAplicacao => {
@@ -37,6 +39,36 @@ const adicionarTarefa = (estado: EstadoAplicacao, tarefa: Tarefa): EstadoAplicac
     return{
         ...estado,
         tarefas: [...estado.tarefas, tarefa]
+    }
+}
+
+const deletar = (estado: EstadoAplicacao): EstadoAplicacao => {
+    if (estado.tarefaSelecionada){
+        const tarefas = estado.tarefas.filter(tarefa => tarefa != estado.tarefaSelecionada);
+
+        return{
+            ...estado,tarefas,tarefaSelecionada:null, editando:false
+        }
+    }else{
+        return estado
+    }
+};
+
+const deletarTodas = (estado: EstadoAplicacao):EstadoAplicacao =>{
+    return{...estado, tarefas:[], tarefaSelecionada: null, editando: false}
+}
+
+const deletarConcluidas = (estado: EstadoAplicacao):EstadoAplicacao =>{
+    const tarefas = estado.tarefas.filter(tarefa => !tarefa.concluida)
+
+    return{
+        ...estado, tarefas, tarefaSelecionada:null, editando:false
+    }
+}
+
+const editarTarefa = (estado: EstadoAplicacao, tarefa: Tarefa): EstadoAplicacao =>{
+    return{
+        ...estado, editando: !estado.editando, tarefaSelecionada:tarefa
     }
 }
 
@@ -57,6 +89,21 @@ const atualizarUI = () => {
     const formAdicionarTarefa = document.querySelector<HTMLFormElement>('.app__form-add-task');
     const btnAdicionarTarefa = document.querySelector<HTMLButtonElement>('.app__button--add-task');
     const textArea = document.querySelector<HTMLTextAreaElement>('.app__form-textarea');
+    const labelTarefaAtiva = document.querySelector<HTMLParagraphElement>('.app__section-active-task-description');
+    const btnCancelar = document.querySelector<HTMLButtonElement>('.app__form-footer__button--cancel');
+    const btnDeletar = document.querySelector<HTMLButtonElement>('.app__form-footer__button--delete');
+    const btnDeletarConcluidas = document.querySelector<HTMLButtonElement>('#btn-remover-concluidas');
+    const btnDeletarTodas = document.querySelector<HTMLButtonElement>('#btn-remover-todas');
+
+    labelTarefaAtiva!.textContent = estadoInicial.tarefaSelecionada ? estadoInicial.tarefaSelecionada.descricao : null;
+
+    if(estadoInicial.editando && estadoInicial.tarefaSelecionada){
+        formAdicionarTarefa!.classList.remove('hidden');
+        textArea!.value = estadoInicial.tarefaSelecionada.descricao;
+    }else{
+        formAdicionarTarefa!.classList.add('hidden');
+        textArea!.value = "";
+    }
 
     if (ulTarefas) {
         ulTarefas.innerHTML = "";
@@ -81,6 +128,26 @@ const atualizarUI = () => {
 
         atualizarUI();
         formAdicionarTarefa!.reset();
+    }
+
+    btnCancelar!.onclick = () => {
+        formAdicionarTarefa!.classList.add('hidden');
+    }
+
+    btnDeletar!.onclick = () => {
+        estadoInicial = deletar(estadoInicial);
+        formAdicionarTarefa!.classList.add('hidden');
+        atualizarUI();
+    }
+
+    btnDeletarConcluidas!.onclick = () => {
+        estadoInicial = deletarConcluidas(estadoInicial);
+        atualizarUI();
+    }
+
+    btnDeletarTodas!.onclick = () => {
+        estadoInicial = deletarTodas(estadoInicial);
+        atualizarUI();
     }
 
     estadoInicial.tarefas.forEach(tarefa => {
@@ -108,9 +175,24 @@ const atualizarUI = () => {
             li.classList.add('app__section-task-list-item-complete')
         }
 
+        if(tarefa === estadoInicial.tarefaSelecionada){
+            li.classList.add('app__section-task-list-item-active');
+        }
+
         li.appendChild(svgIcon)
         li.appendChild(paragraph)
         li.appendChild(button)
+
+        li.addEventListener('click', () => {
+            estadoInicial = selecionarTarefa(estadoInicial, tarefa);
+            atualizarUI();
+        })
+
+        editIcon.onclick = (evento) => {
+            evento.stopPropagation();
+            estadoInicial = editarTarefa(estadoInicial, tarefa);
+            atualizarUI();
+        }        
 
         ulTarefas?.appendChild(li)
     })
