@@ -33,6 +33,12 @@ const selecionarTarefa = (estado: EstadoAplicacao, tarefa: Tarefa): EstadoAplica
     }
 }
 
+const adicionarTarefa = (estado: EstadoAplicacao, tarefa: Tarefa): EstadoAplicacao => {
+    return{
+        ...estado,
+        tarefas: [...estado.tarefas, tarefa]
+    }
+}
 
 const atualizarUI = () => {
 
@@ -47,8 +53,34 @@ const atualizarUI = () => {
     `
 
     const ulTarefas = document.querySelector(".app__section-task-list");
+   
+    const formAdicionarTarefa = document.querySelector<HTMLFormElement>('.app__form-add-task');
+    const btnAdicionarTarefa = document.querySelector<HTMLButtonElement>('.app__button--add-task');
+    const textArea = document.querySelector<HTMLTextAreaElement>('.app__form-textarea');
+
     if (ulTarefas) {
         ulTarefas.innerHTML = "";
+    }
+
+    if(!btnAdicionarTarefa){
+        throw Error("Não foi possível localizar o elemento do botão no HTML")
+    }
+
+    btnAdicionarTarefa.onclick = () => {
+        formAdicionarTarefa?.classList.toggle('hidden')
+    }
+
+    formAdicionarTarefa!.onsubmit = (evento) =>{
+        evento.preventDefault();
+
+        const descricao = textArea!.value
+        estadoInicial = adicionarTarefa(estadoInicial, {
+            descricao,
+            concluida: false
+        })
+
+        atualizarUI();
+        formAdicionarTarefa!.reset();
     }
 
     estadoInicial.tarefas.forEach(tarefa => {
@@ -83,3 +115,5 @@ const atualizarUI = () => {
         ulTarefas?.appendChild(li)
     })
 }
+
+atualizarUI();
