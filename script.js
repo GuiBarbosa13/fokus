@@ -22,7 +22,7 @@ musica.loop = true
 
 
 let intervaloId = null;
-let tempoDecorridoEmSegundos = 25; 
+let tempoDecorridoEmSegundos = 1500; 
 mostrarTempo()
 
 function alterarBanner(contexto) {
@@ -64,19 +64,19 @@ function alterarContexto(contexto) {
 }
 
 focoBtn.addEventListener("click", () => {
-    tempoDecorridoEmSegundos = 25;
+    tempoDecorridoEmSegundos = 1500;
     alterarContexto("foco")
     focoBtn.classList.add('active')
 })
 
 shortBtn.addEventListener("click", () => {
-    tempoDecorridoEmSegundos = 5;
+    tempoDecorridoEmSegundos = 300;
     alterarContexto("short-break")
     shortBtn.classList.add('active')
 })
 
 longBtn.addEventListener("click", () => {
-    tempoDecorridoEmSegundos = 15;
+    tempoDecorridoEmSegundos = 900;
     alterarContexto("long-break")
     longBtn.classList.add('active')
 })
@@ -93,6 +93,7 @@ musicaFocoInput.addEventListener('change', () => {
 
 const contagemRegressiva = () => {
     if (tempoDecorridoEmSegundos <= 0) {
+        audioPlay.play()
         zerar()
         const focoAtivo = html.getAttribute('data-contexto') === 'foco'
         if (focoAtivo) {            
@@ -105,7 +106,7 @@ const contagemRegressiva = () => {
                 cancelable: true
             });
             document.dispatchEvent(event);
-            tempoDecorridoEmSegundos = 25
+            tempoDecorridoEmSegundos = 1500
             mostrarTempo()
         }
 
