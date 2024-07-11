@@ -140,4 +140,10 @@ const atualizarUI = () => {
         ulTarefas === null || ulTarefas === void 0 ? void 0 : ulTarefas.appendChild(li);
     });
 };
+document.addEventListener('TarefaFinalizada', () => {
+    if (estadoInicial.tarefaSelecionada) {
+        estadoInicial.tarefaSelecionada.concluida = true;
+        atualizarUI();
+    }
+});
 atualizarUI();
