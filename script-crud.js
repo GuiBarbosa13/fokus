@@ -54,6 +54,7 @@ const atualizarUI = () => {
     `;
     const ulTarefas = document.querySelector(".app__section-task-list");
     const formAdicionarTarefa = document.querySelector('.app__form-add-task');
+    const formAdicionarTarefaLabel = document.querySelector('.app__form-label');
     const btnAdicionarTarefa = document.querySelector('.app__button--add-task');
     const textArea = document.querySelector('.app__form-textarea');
     const labelTarefaAtiva = document.querySelector('.app__section-active-task-description');
@@ -78,14 +79,27 @@ const atualizarUI = () => {
     }
     btnAdicionarTarefa.onclick = () => {
         formAdicionarTarefa === null || formAdicionarTarefa === void 0 ? void 0 : formAdicionarTarefa.classList.toggle('hidden');
+        formAdicionarTarefaLabel.innerText = "Adicionando tarefa";
+        formAdicionarTarefa === null || formAdicionarTarefa === void 0 ? void 0 : formAdicionarTarefa.reset();
     };
     formAdicionarTarefa.onsubmit = (evento) => {
         evento.preventDefault();
-        const descricao = textArea.value;
-        estadoInicial = adicionarTarefa(estadoInicial, {
-            descricao,
-            concluida: false
-        });
+        if (estadoInicial.editando) {
+            estadoInicial.tarefaSelecionada.descricao = textArea.value;
+            atualizarUI();
+            formAdicionarTarefa.classList.toggle('hidden');
+            estadoInicial.editando = false;
+        }
+        else {
+            const descricao = textArea.value;
+            estadoInicial = adicionarTarefa(estadoInicial, {
+                descricao,
+                concluida: false
+            });
+        }
+        if (estadoInicial.tarefaSelecionada) {
+            return Object.assign(Object.assign({}, estadoInicial), { tarefaSelecionada: null });
+        }
         atualizarUI();
         formAdicionarTarefa.reset();
     };
@@ -127,22 +141,30 @@ const atualizarUI = () => {
         }
         li.appendChild(svgIcon);
         li.appendChild(paragraph);
-        li.appendChild(button);
-        li.addEventListener('click', () => {
-            estadoInicial = selecionarTarefa(estadoInicial, tarefa);
-            atualizarUI();
-        });
-        editIcon.onclick = (evento) => {
-            evento.stopPropagation();
-            estadoInicial = editarTarefa(estadoInicial, tarefa);
-            atualizarUI();
-        };
+        if (!tarefa.concluida) {
+            li.appendChild(button);
+        }
+        if (!tarefa.concluida) {
+            li.addEventListener('click', () => {
+                estadoInicial = selecionarTarefa(estadoInicial, tarefa);
+                atualizarUI();
+            });
+        }
+        if (!tarefa.concluida) {
+            editIcon.onclick = (evento) => {
+                evento.stopPropagation();
+                estadoInicial = editarTarefa(estadoInicial, tarefa);
+                formAdicionarTarefaLabel.innerText = 'Editando tarefa';
+                atualizarUI();
+            };
+        }
         ulTarefas === null || ulTarefas === void 0 ? void 0 : ulTarefas.appendChild(li);
     });
 };
 document.addEventListener('TarefaFinalizada', () => {
     if (estadoInicial.tarefaSelecionada) {
         estadoInicial.tarefaSelecionada.concluida = true;
+        estadoInicial.tarefaSelecionada = null;
         atualizarUI();
     }
 });
