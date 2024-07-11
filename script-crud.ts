@@ -127,6 +127,7 @@ const atualizarUI = () => {
 
         if(estadoInicial.editando){
             estadoInicial.tarefaSelecionada!.descricao=textArea!.value;
+            estadoInicial.tarefaSelecionada = null;
             atualizarUI();
             formAdicionarTarefa!.classList.toggle('hidden')
             estadoInicial.editando=false
@@ -136,6 +137,7 @@ const atualizarUI = () => {
             descricao,
             concluida: false
         })
+            estadoInicial.tarefaSelecionada = null;
         }
 
         if (estadoInicial.tarefaSelecionada) {

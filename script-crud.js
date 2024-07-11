@@ -86,6 +86,7 @@ const atualizarUI = () => {
         evento.preventDefault();
         if (estadoInicial.editando) {
             estadoInicial.tarefaSelecionada.descricao = textArea.value;
+            estadoInicial.tarefaSelecionada = null;
             atualizarUI();
             formAdicionarTarefa.classList.toggle('hidden');
             estadoInicial.editando = false;
@@ -96,6 +97,7 @@ const atualizarUI = () => {
                 descricao,
                 concluida: false
             });
+            estadoInicial.tarefaSelecionada = null;
         }
         if (estadoInicial.tarefaSelecionada) {
             return Object.assign(Object.assign({}, estadoInicial), { tarefaSelecionada: null });
